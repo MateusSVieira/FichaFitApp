@@ -1,5 +1,5 @@
 // app/(auth)/Login.tsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useLayoutEffect } from "react";
 import {
   TextInput,
   Pressable,
@@ -10,22 +10,20 @@ import {
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link, useRouter } from "expo-router";
+import { Link, useRouter, useNavigation } from "expo-router";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// ---------------- MOCK DE USUÁRIO ----------------
-// Troque por sua chamada real de API depois.
-// Exemplo de credenciais:
-// email: demo@pt.com
-// senha: 123456
-const DEMO_USER = {
-  email: "admin",
-  senha: "admin",
-  token: "mock-demo-token",
-};
+/* -------- MOCK -------- */
+const DEMO_USER = { email: "admin", senha: "admin", token: "mock-demo-token" };
 
 export default function LoginScreen() {
+  // esconde o header só aqui
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -38,24 +36,17 @@ export default function LoginScreen() {
     setCarregando(true);
     setErro(null);
     try {
-      // -------- MOCK ----------
       await new Promise((r) => setTimeout(r, 600));
-
       const ok =
         email.trim().toLowerCase() === DEMO_USER.email &&
         senha.trim() === DEMO_USER.senha;
-
       if (!ok) {
-        setErro("Credenciais inválidas. Use demo@pt.com / 123456 para testar.");
+        setErro("Credenciais inválidas. Use admin / admin para testar.");
         return;
       }
-
-      // salva um token mockado para o guard da / (index.tsx) entender que está logado
       await AsyncStorage.setItem("token", DEMO_USER.token);
-
-      // vai direto para a Home
       router.replace("../home");
-    } catch (e) {
+    } catch {
       setErro("Falha ao autenticar. Tente novamente.");
     } finally {
       setCarregando(false);
@@ -64,24 +55,30 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
-      <StatusBar barStyle="light-content" translucent={false} backgroundColor="#0f172a" />
+      {/* translúcido para ocupar a tela toda */}
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Toca fora para fechar o teclado */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View className="flex-1">
           <KeyboardAwareScrollView
             className="flex-1"
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
+            // 👇 Centraliza verticalmente quando o teclado não está aberto
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              paddingHorizontal: 20,
+              paddingBottom: 24,
+            }}
             enableOnAndroid
-            extraHeight={60}
-            extraScrollHeight={60}
+            extraHeight={80}
+            extraScrollHeight={80}
             keyboardOpeningTime={0}
             keyboardShouldPersistTaps="always"
             enableAutomaticScroll
             showsVerticalScrollIndicator={false}
           >
             {/* Cabeçalho / Marca */}
-            <View className="items-center mt-8">
+            <View className="items-center mb-6">
               <View className="h-16 w-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 items-center justify-center">
                 <Text className="text-emerald-400 font-bold text-2xl">PT</Text>
               </View>
@@ -92,17 +89,14 @@ export default function LoginScreen() {
             </View>
 
             {/* Card */}
-            <View className="mt-8 rounded-3xl bg-white/5 border border-white/10 p-5 shadow-lg shadow-black/30">
+            <View className="rounded-3xl bg-white/5 border border-white/10 p-5 shadow-lg shadow-black/30">
               {/* E-mail */}
               <Text className="text-slate-300 mb-2 font-medium">E-mail</Text>
               <TextInput
                 className="h-12 rounded-2xl bg-white/10 border border-white/15 px-4 text-white placeholder:text-slate-400"
-                placeholder="voce@email.com"
-                keyboardType="email-address"
+                placeholder="Login"
                 autoCapitalize="none"
                 autoCorrect={false}
-                autoComplete="email"
-                textContentType="emailAddress"
                 value={email}
                 onChangeText={setEmail}
                 returnKeyType="next"
@@ -116,14 +110,12 @@ export default function LoginScreen() {
                 <TextInput
                   ref={senhaRef}
                   className="flex-1 h-12 rounded-2xl bg-white/10 border border-white/15 px-4 text-white placeholder:text-slate-400"
-                  placeholder="••••••••"
+                  placeholder="Senha"
                   secureTextEntry={!mostrarSenha}
                   value={senha}
                   onChangeText={setSenha}
                   returnKeyType="go"
                   blurOnSubmit={false}
-                  autoComplete="password"
-                  textContentType="password"
                   onSubmitEditing={onLogin}
                 />
                 <Pressable
@@ -143,7 +135,7 @@ export default function LoginScreen() {
                 </View>
               )}
 
-              {/* Botão Entrar */}
+              {/* Entrar */}
               <Pressable
                 onPress={onLogin}
                 disabled={carregando}
@@ -155,19 +147,14 @@ export default function LoginScreen() {
               </Pressable>
 
               {/* Divisor */}
-              <View className="flex-row items-center my-5">
+              {/* <View className="flex-row items-center my-5">
                 <View className="flex-1 h-[1px] bg-white/10" />
                 <Text className="mx-3 text-slate-500 text-xs">ou</Text>
                 <View className="flex-1 h-[1px] bg-white/10" />
-              </View>
-
-              {/* Botão alternativo (placeholder) */}
-              <Pressable className="h-12 rounded-2xl bg-white/10 border border-white/15 items-center justify-center">
-                <Text className="text-white font-medium">Entrar com outro método</Text>
-              </Pressable>
+              </View> */}
             </View>
 
-            {/* Rodapé: cadastro */}
+            {/* Rodapé */}
             <View className="items-center mt-6">
               <Text className="text-slate-400">
                 Novo por aqui?{" "}
@@ -177,8 +164,7 @@ export default function LoginScreen() {
               </Text>
             </View>
 
-            {/* Texto legal/segurança */}
-            <View className="items-center mt-4 mb-3">
+            <View className="items-center mt-4">
               <Text className="text-slate-500 text-center text-xs">
                 Ao continuar, você concorda com nossos{" "}
                 <Text className="text-slate-300 underline">Termos</Text> e{" "}

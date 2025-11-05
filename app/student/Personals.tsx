@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { Link, LinkProps, useRouter, Stack } from "expo-router";
 
-// -------------------- Tipos --------------------
+/* -------------------- Tipos -------------------- */
 type Trainer = {
   id: string;
   name: string;
@@ -27,7 +27,7 @@ type Trainer = {
   bio?: string;
 };
 
-// -------------------- Mock localização/alvos --------------------
+/* -------------------- Mock localização/alvos -------------------- */
 const STUDENT_LOCATION = { lat: -23.561684, lng: -46.625378 };
 
 const TRAINERS: Trainer[] = [
@@ -77,7 +77,7 @@ const TRAINERS: Trainer[] = [
   },
 ];
 
-// -------------------- Utils --------------------
+/* -------------------- Utils -------------------- */
 const RADIUS_KM = 6371;
 const toRad = (v: number) => (v * Math.PI) / 180;
 function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -93,7 +93,7 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
 const money = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
-// -------------------- UI helpers --------------------
+/* -------------------- UI helpers -------------------- */
 function Badge({ children }: { children: React.ReactNode }) {
   return (
     <View className="px-2 py-1 rounded-lg bg-white/5 border border-white/10">
@@ -120,7 +120,7 @@ function InfoRow({
 function PaywallModal({
   visible,
   onClose,
-  checkoutHref = "/(student)/Checkout",
+  checkoutHref = "./(student)/Checkout",
 }: {
   visible: boolean;
   onClose: () => void;
@@ -231,7 +231,7 @@ function TrainerCard({
   );
 }
 
-// -------------------- Tela principal --------------------
+/* -------------------- Tela principal -------------------- */
 export default function PersonalsScreen() {
   const { width } = useWindowDimensions();
   const router = useRouter();
@@ -274,31 +274,44 @@ export default function PersonalsScreen() {
       setShowPaywall(true);
       return;
     }
-    router.push({ pathname: "/(student)/Schedule", params: { trainerId: trainer.id } });
+    router.push({ pathname: "./(student)/Schedule", params: { trainerId: trainer.id } });
   };
 
   const openProfile = (trainer: Trainer) => {
-    router.push({ pathname: "/(student)/TrainerProfile", params: { trainerId: trainer.id } });
+    router.push({ pathname: "./(student)/TrainerProfile", params: { trainerId: trainer.id } });
   };
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
-      {/* ✅ esconde o header do Stack para evitar barra e espaço no topo */}
+      {/* Esconde header padrão */}
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
 
-      {/* Header (compacto) */}
-      <View style={{ width }} className="px-4 pt-2 pb-2 border-b border-white/10">
-        <Text className="text-white text-xl font-extrabold">Personals na sua região</Text>
-        <Text className="text-slate-400 text-[12px] mt-0.5">
-          Encontre um professor perto de você e agende aulas (após pagamento).
-        </Text>
+      {/* Header próprio — seta + título (mais centralizado) */}
+      <View
+        style={{ width }}
+        className="px-4 pt-4 pb-3 border-b border-white/10 flex-row items-center"
+      >
+        <Pressable
+          onPress={() => router.replace("/home")}
+          className="h-10 w-10 rounded-xl bg-white/5 items-center justify-center active:bg-white/10"
+          accessibilityLabel="Voltar para Home"
+        >
+          <Feather name="arrow-left" size={18} color="#e2e8f0" />
+        </Pressable>
+
+        <View className="ml-3">
+          <Text className="text-white text-2xl font-extrabold">Personals na sua região</Text>
+          <Text className="text-slate-400 text-[12px] mt-0.5">
+            Encontre um professor perto de você e agende aulas (após pagamento).
+          </Text>
+        </View>
       </View>
 
-      {/* Filtros */}
-      <View style={{ width }} className="px-3 pt-2">
+      {/* Filtros (paddings levemente maiores para “centralizar” o conteúdo) */}
+      <View style={{ width }} className="px-4 pt-3">
         <View className="flex-row items-center gap-2">
-          <View className="flex-1 flex-row items-center h-10 rounded-xl border border-white/10 px-3 bg-white/5">
+          <View className="flex-1 flex-row items-center h-11 rounded-xl border border-white/10 px-3 bg-white/5">
             <Feather name="search" size={16} color="#94a3b8" />
             <TextInput
               value={query}
@@ -312,7 +325,7 @@ export default function PersonalsScreen() {
           {/* botão mock para simular pagamento */}
           <Pressable
             onPress={() => setHasPayment((v) => !v)}
-            className={`h-10 px-3 rounded-xl items-center justify-center ${
+            className={`h-11 px-3 rounded-xl items-center justify-center ${
               hasPayment ? "bg-emerald-600" : "bg-white/5 border border-white/10"
             }`}
           >
@@ -326,7 +339,7 @@ export default function PersonalsScreen() {
           </Pressable>
         </View>
 
-        <View className="flex-row mt-2">
+        <View className="flex-row mt-3">
           <Pressable
             className={`px-3 h-9 rounded-xl items-center justify-center mr-2 ${
               specialty === null ? "bg-emerald-500" : "bg-white/5 border border-white/10"
@@ -384,13 +397,13 @@ export default function PersonalsScreen() {
         </View>
       </View>
 
-      {/* Lista (ocupando o restante da tela) */}
+      {/* Lista */}
       <View className="flex-1" style={{ width }}>
         <FlatList
           data={filtered}
           keyExtractor={(i) => i.id}
           renderItem={({ item }) => (
-            <View className="px-3">
+            <View className="px-4">
               <TrainerCard
                 item={item}
                 km={(item as any).km as number}
@@ -407,8 +420,7 @@ export default function PersonalsScreen() {
               </Text>
             </View>
           }
-          // padding da lista (sem sobrar espaço branco)
-          contentContainerStyle={{ paddingTop: 8, paddingBottom: 8 }}
+          contentContainerStyle={{ paddingTop: 10, paddingBottom: 10 }}
           showsVerticalScrollIndicator={false}
         />
       </View>
@@ -417,7 +429,7 @@ export default function PersonalsScreen() {
       <PaywallModal
         visible={showPaywall}
         onClose={() => setShowPaywall(false)}
-        checkoutHref="/(student)/Checkout"
+        checkoutHref="./(student)/Checkout"
       />
     </SafeAreaView>
   );
