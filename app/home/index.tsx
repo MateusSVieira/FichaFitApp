@@ -219,7 +219,7 @@ export default function HomeScreen() {
 
           <View className="flex-row">
             <NavButton icon="calendar" label="Treinos" href="/Training" />
-            <NavButton icon="columns" label="Aluno (Abas)" href="/AlunoTabs" />
+            <NavButton icon="columns" label="Aluno (Abas)" href="/StudentsTabs" />
           </View>
 
           <View className="flex-row">
