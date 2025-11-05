@@ -1,3 +1,4 @@
+// app/home/index.tsx
 import React, { useMemo, useState } from "react";
 import {
   View,
@@ -8,7 +9,7 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link, LinkProps, useRouter } from "expo-router";
+import { Link, LinkProps, useRouter, usePathname } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -54,31 +55,43 @@ function StatCard({
   );
 }
 
-// ----------------- Menu Inferior fixo -----------------
+// ----------------- Menu Inferior fixo (com Personals) -----------------
 function BottomNav() {
+  const pathname = usePathname();
+
+  const Item = ({
+    href,
+    icon,
+    label,
+  }: {
+    href: LinkProps["href"];
+    icon: FeatherName;
+    label: string;
+  }) => {
+    const hrefPath =
+      typeof href === "string" ? href : (href.pathname as string | undefined) || "";
+    const active = pathname.startsWith(hrefPath);
+
+    return (
+      <Link href={href} asChild>
+        <Pressable className="items-center px-4 py-1">
+          <Feather name={icon} size={18} color={active ? "#a3e635" : "#cbd5e1"} />
+          <Text className={`text-[11px] mt-1 ${active ? "text-emerald-400" : "text-slate-300"}`}>
+            {label}
+          </Text>
+        </Pressable>
+      </Link>
+    );
+  };
+
   return (
     <View className="absolute bottom-0 left-0 right-0 bg-slate-900/95 border-t border-white/10">
       <View className="flex-row items-center justify-around py-2">
-        <Link href="/Dashboard" asChild>
-          <Pressable className="items-center px-4 py-1">
-            <Feather name="layout" size={18} color="#cbd5e1" />
-            <Text className="text-slate-300 text-[11px] mt-1">Dashboard</Text>
-          </Pressable>
-        </Link>
-
-        <Link href="/Students" asChild>
-          <Pressable className="items-center px-4 py-1">
-            <Feather name="users" size={18} color="#cbd5e1" />
-            <Text className="text-slate-300 text-[11px] mt-1">Alunos</Text>
-          </Pressable>
-        </Link>
-
-        <Link href="/Training" asChild>
-          <Pressable className="items-center px-4 py-1">
-            <Feather name="calendar" size={18} color="#cbd5e1" />
-            <Text className="text-slate-300 text-[11px] mt-1">Treinos</Text>
-          </Pressable>
-        </Link>
+        <Item href="/Dashboard" icon="layout" label="Dashboard" />
+        <Item href="/Students" icon="users" label="Alunos" />
+        <Item href="/Training" icon="calendar" label="Treinos" />
+        {/* ✅ novo item no menu inferior */}
+        <Item href="/student/Personals" icon="map-pin" label="Personals" />
       </View>
     </View>
   );
@@ -125,10 +138,7 @@ function SandwichMenu({
 }) {
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <Pressable className="flex-1 bg-black/40" onPress={onClose}>
-        {/* vazio para capturar o toque fora */}
-      </Pressable>
-
+      <Pressable className="flex-1 bg-black/40" onPress={onClose} />
       <View className="absolute right-3 top-14 w-56 rounded-2xl bg-slate-900 border border-white/10 shadow-lg">
         <Link href="/Profile" asChild>
           <Pressable className="flex-row items-center px-3 py-3 active:bg-white/5">
@@ -193,7 +203,7 @@ export default function HomeScreen() {
       <Header width={width} onOpenMenu={() => setMenuOpen(true)} />
 
       {/* Conteúdo principal (padding inferior para não colidir com o bottom nav) */}
-      <View style={{ width }} className="px-3 py-3 pb-20">
+      <View style={{ width }} className="px-3 py-3 pb-24">
         {/* Resumo do dia */}
         <View className="mb-2">
           <Text className="text-slate-300 text-[12px]">Resumo de hoje</Text>
@@ -226,6 +236,12 @@ export default function HomeScreen() {
             <NavButton icon="grid" label="Lista (Abas)" href="/StudentsTabs" />
             <NavButton icon="briefcase" label="Onboarding" href="/Trainer-wizard" />
           </View>
+
+          {/* Atalho para Personals (na região) */}
+          <View className="flex-row">
+            <NavButton icon="map-pin" label="Personals perto" href="/student/Personals" />
+            <View className="flex-1 m-1" />
+          </View>
         </View>
 
         {/* Ajuda / dicas (mock) */}
@@ -237,7 +253,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Menu inferior fixo */}
+      {/* Menu inferior fixo (agora com Personals) */}
       <BottomNav />
 
       {/* Menu sanduíche */}
